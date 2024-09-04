@@ -11,9 +11,9 @@
                 return data;
             }).AllowAnonymous();
 
-            app.MapPost("/CategoriaProducto", (string name, string lastName) =>
+            app.MapPost("/CategoriaProducto", (string name, string description) =>
             {
-                data.Add(new { name, lastName });
+                data.Add(new { name, description });
                 return Results.Ok();
             }).RequireAuthorization();
         }

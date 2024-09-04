@@ -1,39 +1,47 @@
-﻿namespace JWTKDSB20240903.Endpoints
+﻿using System.Xml.Linq;
+
+namespace JWTKDSB20240903.Endpoints
 {
     
     
         public static class BodegaEndpoint
         {
-            static List<object> bodegas = new List<object>();
+            static List<object> data = new List<object>();
 
             public static void AddBodegaEndpoints(this WebApplication app)
             {
-                app.MapPost("/bodega/crear", (string nombre, string ubicacion) =>
+                app.MapGet("/bodega", () =>
                 {
-                    var nuevaBodega = new { Id = Guid.NewGuid(), Nombre = nombre, Ubicacion = ubicacion };
-                    bodegas.Add(nuevaBodega);
-                    return Results.Ok(nuevaBodega);
+
+                    return data;
                 }).RequireAuthorization();
 
-                app.MapPut("/bodega/modificar/{id}", (Guid id, string nombre, string ubicacion) =>
+                app.MapPost("/bodega", (int id, string nombre, string ubicacion) =>
                 {
-                    var bodega = bodegas.FirstOrDefault(b => ((Guid)b.GetType().GetProperty("Id").GetValue(b)) == id);
+                    data.Add(new { id, nombre, ubicacion });
+                    return Results.Ok();
+                }).RequireAuthorization();
+
+                app.MapPut("/bodega/{id}", (int id, string nombre, string ubicacion) =>
+                {
+                    var bodega = data.FirstOrDefault(b => (int)((Dictionary<string, object>)b)["id"] == id);
+
                     if (bodega == null)
                     {
                         return Results.NotFound();
                     }
 
-                    bodega.GetType().GetProperty("Nombre").SetValue(bodega, nombre);
-                    bodega.GetType().GetProperty("Ubicacion").SetValue(bodega, ubicacion);
-                    return Results.Ok(bodega);
+                    var bodegaDict = (Dictionary<string, object>)bodega;
+
+                    bodegaDict["nombre"] = nombre;
+                    bodegaDict["ubicacion"] = ubicacion;
+
+                    return Results.Ok(bodegaDict);
                 }).RequireAuthorization();
 
-                app.MapGet("/bodega/obtener/{id}", (Guid id) =>
-                {
-                    var bodega = bodegas.FirstOrDefault(b => ((Guid)b.GetType().GetProperty("Id").GetValue(b)) == id);
-                    return bodega != null ? Results.Ok(bodega) : Results.NotFound();
-                }).RequireAuthorization();
-            }
+
+
         }
+    }
     
 }
